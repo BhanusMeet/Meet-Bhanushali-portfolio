@@ -62,6 +62,7 @@ export function AdminLayout() {
           <Link to="/" aria-label="Back to the public site"><Wordmark /></Link>
           <nav aria-label="Admin" className="order-last flex w-full items-center justify-center gap-1 sm:order-none sm:w-auto">
             <NavLink to="/admin" end className={tab}>Overview</NavLink>
+            <NavLink to="/admin/content" className={tab}>Content</NavLink>
             <NavLink to="/admin/reviews" className={tab}>Reviews</NavLink>
             <NavLink to="/admin/invitations" className={tab}>Invitations</NavLink>
           </nav>

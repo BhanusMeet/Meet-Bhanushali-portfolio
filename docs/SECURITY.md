@@ -13,6 +13,8 @@
 | Clients cannot set status, timestamps, reviewer or invitation id | Not parameters of `submit_review()` |
 | Service-role key never reaches the browser | Used only inside Edge Functions; no `VITE_` variant exists; `npm run check:build` scans the bundle |
 | Abuse of public endpoints is limited | DB-backed fixed-window limiter per IP and per token; per-user on admin creation; fails closed |
+| Only administrators can change site content | `site_content` has RLS policies for select / insert / update / delete that all require `is_admin()`; `anon` has no table access; the public reads published rows through `get_site_content()` only |
+| Edited content cannot inject script or bad links | Values are validated in the editor and re-parsed on display: only `https://` links, length limits, unknown icons or categories replaced; React escapes all text |
 | Logs contain no secrets | Functions log event names and error codes only |
 
 ## Other controls
@@ -30,7 +32,7 @@ Never edit an applied migration. Add a new timestamped file in `supabase/migrati
 
 ## Tests
 
-`tests/review-db.test.ts` runs the real migration in an in-process Postgres (PGlite) with stand-ins for
+`tests/review-db.test.ts` and `tests/content-db.test.ts` run the real migrations in an in-process Postgres (PGlite) with stand-ins for
 Supabase roles. It checks invalid/expired/revoked/used tokens, payload validation, anonymous and
 non-admin denial, token-hash protection, public visibility rules and the rate limiter.
 

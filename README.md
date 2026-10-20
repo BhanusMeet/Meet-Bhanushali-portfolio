@@ -20,7 +20,7 @@ npm run dev              # http://localhost:5173
 | `npm run build` | Type-check and production build to `dist/` |
 | `npm run preview` | Serve the production build locally |
 | `npm run typecheck` / `npm run lint` | TypeScript / ESLint |
-| `npm test` | Vitest: client validation and **database security tests** (the real migration in an in-process Postgres) |
+| `npm test` | Vitest: validation, content parsing, and **database security tests** (every migration in an in-process Postgres) |
 | `npm run check:build` | Audit `dist/`: asset references resolve, no secrets in the bundle |
 | `npm run check` | Everything above, in order |
 
@@ -33,19 +33,27 @@ Add `?sample=1` to the URL **in dev only** to preview the project cards with cle
 * [`docs/SECURITY.md`](docs/SECURITY.md): guarantees, where each is enforced, what is and isn't tested
 * [`supabase/README.md`](supabase/README.md): backend and database folder
 
-## Editing content
+## Editing content (no code)
 
-| What | Where |
+Sign in at `/admin/login` and open **Content**. Everything below is edited there, and changes are live
+straight away (visitors see them on their next page load):
+
+| Tab | What it controls |
 | --- | --- |
-| Name, tagline, nav, contact channels | `src/config/site.ts` (env vars override the defaults) |
-| Work experience | `src/data/experience.ts` |
-| Skills | `src/data/skills.ts` |
-| Projects | `src/data/projects.ts` (empty by default, which shows an empty state; a template is at the top) |
-| Hobbies | `src/data/hobbies.ts` |
-| Certificates | `src/data/certificates.ts` |
+| Work & clients | The Work timeline and cards. Add every new client or job here and it appears in the timeline automatically |
+| Projects | The Projects section (live site, source and case-study buttons appear only when filled in) |
+| Skills | The skill groups |
+| Hobbies | The "Off the keyboard" cards |
+| Certificates | The training list under Skills |
+| Contact links | Email, Instagram, LinkedIn and Fiverr (used by the Contact section and the footer) |
 
-Nothing in the repository invents roles, achievements, projects, testimonials or links. Missing
-details render as "to be added" or are hidden.
+Each item can be edited, reordered, hidden from the site without deleting it, or deleted. Links must start
+with `https://`. Images are used by link (there is no file upload).
+
+The files in `src/data/` and `src/config/site.ts` are only the **starter content**: the site shows them until the
+database has content (and if the backend is ever unreachable). Once the database has rows it is the source of truth.
+
+Other text (hero, About) is still edited in code: `src/components/sections/`.
 
 > The four certificate scans in the project root are git-ignored (`/*.jpg`) because they contain
 > certificate IDs. Only their text details are used on the site.

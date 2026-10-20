@@ -1,7 +1,6 @@
 /**
- * Central, editable site configuration.
- * Contact URLs come from environment variables so no personal details are
- * hard-coded. Unset values are hidden in production and shown as dev hints.
+ * Static site configuration. Contact links are editable from /admin/content; the values here are
+ * only the starter defaults shown until (or without) the database.
  */
 const env = import.meta.env
 
@@ -19,30 +18,37 @@ export type ContactChannel = {
   envKey: string
 }
 
-// Public contact details. Environment variables override these defaults.
-const DEFAULTS = {
-  email: 'bhanusmeet@gmail.com',
-  instagram: 'https://www.instagram.com/buildwithmeett/',
-  linkedin: 'https://www.linkedin.com/in/meet-bhanushali1326',
-  fiverr: 'https://www.fiverr.com/meet75188',
-}
+export type ContactSettings = { email?: string; instagram?: string; linkedin?: string; fiverr?: string }
 
-const emailRaw = ((env.VITE_CONTACT_EMAIL as string | undefined)?.trim()) || DEFAULTS.email
-// Minimal sanity check so a typo can never produce a broken mailto: link.
-export const contactEmail = emailRaw && /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(emailRaw) ? emailRaw : undefined
-
-const cleanUrl = (v: unknown) => {
+/** Minimal sanity check so a typo can never produce a broken mailto: link. */
+export const cleanEmail = (v: unknown) => {
   const s = typeof v === 'string' ? v.trim() : ''
-  // Only ever render https URLs, never javascript: or data: schemes.
-  return /^https:\/\//i.test(s) ? s : undefined
+  return /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(s) && s.length <= 254 ? s : undefined
 }
 
-export const contactChannels: ContactChannel[] = [
-  { id: 'email', label: 'Email', href: contactEmail ? `mailto:${contactEmail}` : undefined, display: contactEmail, envKey: 'VITE_CONTACT_EMAIL' },
-  { id: 'instagram', label: 'Instagram', href: cleanUrl(env.VITE_INSTAGRAM_URL || DEFAULTS.instagram), envKey: 'VITE_INSTAGRAM_URL' },
-  { id: 'linkedin', label: 'LinkedIn', href: cleanUrl(env.VITE_LINKEDIN_URL || DEFAULTS.linkedin), envKey: 'VITE_LINKEDIN_URL' },
-  { id: 'fiverr', label: 'Fiverr', href: cleanUrl(env.VITE_FIVERR_URL || DEFAULTS.fiverr), envKey: 'VITE_FIVERR_URL' },
-]
+/** Only ever render https URLs, never javascript: or data: schemes. */
+export const cleanUrl = (v: unknown) => {
+  const s = typeof v === 'string' ? v.trim() : ''
+  return /^https:\/\/[^\s]+$/i.test(s) && s.length <= 500 ? s : undefined
+}
+
+/** Starter values (used until the editable settings load). Environment variables override them. */
+export const defaultContactSettings: ContactSettings = {
+  email: (env.VITE_CONTACT_EMAIL as string | undefined)?.trim() || 'bhanusmeet@gmail.com',
+  instagram: (env.VITE_INSTAGRAM_URL as string | undefined) || 'https://www.instagram.com/buildwithmeett/',
+  linkedin: (env.VITE_LINKEDIN_URL as string | undefined) || 'https://www.linkedin.com/in/meet-bhanushali1326',
+  fiverr: (env.VITE_FIVERR_URL as string | undefined) || 'https://www.fiverr.com/meet75188',
+}
+
+export function buildContactChannels(s: ContactSettings): ContactChannel[] {
+  const email = cleanEmail(s.email)
+  return [
+    { id: 'email', label: 'Email', href: email ? `mailto:${email}` : undefined, display: email, envKey: 'Contact links > Email' },
+    { id: 'instagram', label: 'Instagram', href: cleanUrl(s.instagram), envKey: 'Contact links > Instagram' },
+    { id: 'linkedin', label: 'LinkedIn', href: cleanUrl(s.linkedin), envKey: 'Contact links > LinkedIn' },
+    { id: 'fiverr', label: 'Fiverr', href: cleanUrl(s.fiverr), envKey: 'Contact links > Fiverr' },
+  ]
+}
 
 export const navItems = [
   { id: 'home', label: 'Home' },

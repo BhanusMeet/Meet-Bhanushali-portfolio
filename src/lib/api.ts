@@ -1,6 +1,7 @@
 import { functionsUrl, publicAnonKey, supabase } from './supabase'
 import type { AdminInvitation, AdminReview, PublicTestimonial, ReviewStatus } from '@/types'
 import type { ReviewInput } from './validation'
+import type { ContentKind, ContentRow } from './content'
 
 /* ───────────────────────── Public ───────────────────────── */
 
@@ -127,3 +128,39 @@ export async function revokeInvitation(id: string): Promise<void> {
   if (error || !data?.ok) throw new Error('Could not revoke the invitation')
 }
 
+/* ───────────────────────── Site content ───────────────────────── */
+
+/** Public: published rows only (a SECURITY DEFINER function; the table itself is admin-only). */
+export async function fetchSiteContent(): Promise<ContentRow[]> {
+  if (!supabase) return []
+  const { data, error } = await supabase.rpc('get_site_content')
+  if (error) throw new Error('Could not load site content')
+  return (data ?? []) as ContentRow[]
+}
+
+const CONTENT_COLUMNS = 'id, kind, data, position, published'
+
+export async function adminListContent(): Promise<ContentRow[]> {
+  const { data, error } = await need().from('site_content').select(CONTENT_COLUMNS).order('kind').order('position')
+  if (error) throw new Error(error.message)
+  return (data ?? []) as ContentRow[]
+}
+
+export async function adminSaveContent(row: { id?: string; kind: ContentKind; data: Record<string, unknown>; position: number; published: boolean }): Promise<void> {
+  const db = need().from('site_content')
+  const { error } = row.id
+    ? await db.update({ data: row.data, position: row.position, published: row.published }).eq('id', row.id)
+    : await db.insert({ kind: row.kind, data: row.data, position: row.position, published: row.published })
+  if (error) throw new Error(error.message)
+}
+
+export async function adminDeleteContent(id: string): Promise<void> {
+  const { error } = await need().from('site_content').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+export async function adminSetPositions(updates: { id: string; position: number }[]): Promise<void> {
+  const results = await Promise.all(updates.map((u) => need().from('site_content').update({ position: u.position }).eq('id', u.id)))
+  const failed = results.find((r) => r.error)
+  if (failed?.error) throw new Error(failed.error.message)
+}

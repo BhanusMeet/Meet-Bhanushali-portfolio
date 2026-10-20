@@ -43,6 +43,7 @@ export default function AdminOverview() {
         )}
       </div>
       <div className="mt-8 flex flex-wrap gap-3 text-sm">
+        <Link className="rounded-full border border-accent/50 bg-accent/10 px-5 py-2.5 text-accent hover:bg-accent/15" to="/admin/content">Edit site content →</Link>
         <Link className="rounded-full border border-ink-500 px-5 py-2.5 hover:border-accent/60" to="/admin/invitations">Create an invitation →</Link>
         <Link className="rounded-full border border-ink-500 px-5 py-2.5 hover:border-accent/60" to="/admin/reviews">Moderate reviews →</Link>
       </div>

@@ -1,6 +1,7 @@
 import type { ComponentType, SVGProps } from 'react'
 import { Check, Copy, Mail } from 'lucide-react'
-import { contactChannels, contactEmail, type ContactChannel } from '@/config/site'
+import type { ContactChannel } from '@/config/site'
+import { useContent } from '@/content/ContentProvider'
 import { useCopy } from '@/hooks/useCopy'
 import { Reveal } from '@/animations/Reveal'
 import { SectionHeading } from '@/components/ui/SectionHeading'
@@ -59,8 +60,9 @@ function Channel({ c }: { c: ContactChannel }) {
 
 export function Contact() {
   const { state, copy } = useCopy()
+  const { contact: contactChannels } = useContent()
   const anyConfigured = contactChannels.some((c) => c.href)
-  const email = contactEmail
+  const email = contactChannels.find((c) => c.id === 'email')?.display
 
   return (
     <section id="contact" aria-labelledby="contact-title" className="relative py-24 md:py-36">
@@ -103,8 +105,8 @@ export function Contact() {
             {!anyConfigured && !import.meta.env.DEV && (
               <p className="surface mt-3 p-5 text-fg-muted">Contact channels are being set up. Please check back shortly.</p>
             )}
-            {import.meta.env.DEV && !contactEmail && (
-              <p className="mt-4 font-mono text-xs text-fg-dim">dev hint: copy .env.example → .env and fill in the VITE_* contact values. Unset channels are hidden in production builds.</p>
+            {import.meta.env.DEV && !email && (
+              <p className="mt-4 font-mono text-xs text-fg-dim">dev hint: add your contact links in the admin panel (Content, then Contact links). Unset channels are hidden in production builds.</p>
             )}
           </Reveal>
         </div>

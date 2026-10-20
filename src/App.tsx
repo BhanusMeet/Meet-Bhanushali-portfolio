@@ -10,6 +10,7 @@ const AdminLayout = lazy(() => import('@/components/admin/AdminLayout').then((m)
 const AdminOverview = lazy(() => import('@/pages/admin/AdminOverview'))
 const AdminReviews = lazy(() => import('@/pages/admin/AdminReviews'))
 const AdminInvitations = lazy(() => import('@/pages/admin/AdminInvitations'))
+const AdminContent = lazy(() => import('@/pages/admin/AdminContent'))
 
 function NotFound() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
           <Route index element={<AdminOverview />} />
           <Route path="reviews" element={<AdminReviews />} />
           <Route path="invitations" element={<AdminInvitations />} />
+          <Route path="content" element={<AdminContent />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

@@ -1,7 +1,7 @@
 import { useId, useMemo, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ChevronDown, ExternalLink } from 'lucide-react'
-import { experience } from '@/data/experience'
+import { useContent } from '@/content/ContentProvider'
 import { Reveal } from '@/animations/Reveal'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { StatusDot, Tag } from '@/components/ui/primitives'
@@ -188,8 +188,9 @@ function ExperienceCard({ entry, defaultOpen }: { entry: ExperienceEntry; defaul
 }
 
 export function Experience() {
+  const { experience } = useContent()
   // Most recent start first. Dates are shown exactly as supplied; overlap is visible in the ribbon.
-  const sorted = useMemo(() => [...experience].sort((a, b) => monthIndex(b.start) - monthIndex(a.start)), [])
+  const sorted = useMemo(() => [...experience].sort((a, b) => monthIndex(b.start) - monthIndex(a.start)), [experience])
 
   return (
     <section id="work" aria-labelledby="work-title" className="relative py-24 md:py-36">
@@ -198,6 +199,12 @@ export function Experience() {
           Select a role to expand it. Some engagements overlap, dates are shown as they happened.
         </SectionHeading>
 
+        {experience.length === 0 ? (
+          <Reveal>
+            <p className="surface p-8 text-fg-muted">New work will appear here soon.</p>
+          </Reveal>
+        ) : (
+          <>
         <Reveal>
           <TimelineRibbon entries={experience} />
         </Reveal>
@@ -210,6 +217,8 @@ export function Experience() {
             </Reveal>
           ))}
         </ol>
+          </>
+        )}
       </div>
     </section>
   )

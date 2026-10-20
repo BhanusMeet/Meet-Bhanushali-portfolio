@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ExternalLink, FolderOpen, X } from 'lucide-react'
-import { projectCategories, projects as realProjects, sampleProjects } from '@/data/projects'
+import { projectCategories, sampleProjects } from '@/data/projects'
+import { useContent } from '@/content/ContentProvider'
 import { showSampleProjects } from '@/config/site'
 import { Reveal } from '@/animations/Reveal'
 import { SectionHeading } from '@/components/ui/SectionHeading'
@@ -105,7 +106,8 @@ function CaseStudyDialog({ project, onClose }: { project: Project | null; onClos
 }
 
 export function Projects() {
-  const items = useMemo(() => (showSampleProjects ? [...realProjects, ...sampleProjects] : realProjects), [])
+  const { projects: realProjects } = useContent()
+  const items = useMemo(() => (showSampleProjects ? [...realProjects, ...sampleProjects] : realProjects), [realProjects])
   const [filter, setFilter] = useState<string>('All')
   const [open, setOpen] = useState<Project | null>(null)
   const visible = filter === 'All' ? items : items.filter((p) => p.category === filter)

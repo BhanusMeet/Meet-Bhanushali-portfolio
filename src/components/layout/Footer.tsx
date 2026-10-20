@@ -1,9 +1,11 @@
 import { ArrowUp } from 'lucide-react'
-import { contactChannels, navItems, site } from '@/config/site'
+import { navItems, site } from '@/config/site'
+import { useContent } from '@/content/ContentProvider'
 import { Wordmark } from './Wordmark'
 
 export function Footer() {
   const year = new Date().getFullYear()
+  const { contact: contactChannels } = useContent()
   const socials = contactChannels.filter((c) => c.href && c.id !== 'email')
 
   return (

@@ -1,7 +1,7 @@
 import { useRef, type ComponentType } from 'react'
 import { easeOut, motion, useReducedMotion, useScroll, useTransform, type MotionValue } from 'framer-motion'
-import { ChefHat, ChessKnight, Feather, Gamepad2, Hand, Music2 } from 'lucide-react'
-import { hobbies } from '@/data/hobbies'
+import { BookOpen, Bike, Camera, ChefHat, ChessKnight, Dumbbell, Feather, Gamepad2, Hand, Headphones, Mountain, Music2, Palette, Plane, Trophy } from 'lucide-react'
+import { useContent } from '@/content/ContentProvider'
 import { Reveal } from '@/animations/Reveal'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
@@ -14,6 +14,15 @@ const icons: Record<Hobby['icon'], ComponentType<{ className?: string }>> = {
   gaming: Gamepad2,
   badminton: Feather,
   martial: Hand,
+  fitness: Dumbbell,
+  reading: BookOpen,
+  photography: Camera,
+  travel: Plane,
+  cycling: Bike,
+  music: Headphones,
+  art: Palette,
+  hiking: Mountain,
+  trophy: Trophy,
 }
 
 function CardBody({ h }: { h: Hobby }) {
@@ -74,7 +83,7 @@ function PinnedCard({ h, i, progress }: { h: Hobby; i: number; progress: MotionV
 }
 
 /** Desktop: the section pins to the screen and the cards assemble as you scroll through it. */
-function PinnedStage() {
+function PinnedStage({ hobbies }: { hobbies: Hobby[] }) {
   const ref = useRef<HTMLElement>(null)
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] })
   const placed = useTransform(scrollYProgress, (v) => `${Math.min(hobbies.length, Math.max(0, Math.floor((v - 0.04 - 0.36) / 0.085) + 2))}/${hobbies.length} placed`)
@@ -106,7 +115,7 @@ function PinnedStage() {
 }
 
 /** Mobile, tablet and reduced-motion: a normal grid (cards still glide in on mobile via Reveal). */
-function PlainGrid() {
+function PlainGrid({ hobbies }: { hobbies: Hobby[] }) {
   return (
     <section id="hobbies" aria-labelledby="hobbies-title" className="relative py-24 md:py-36">
       <div className="container-x">
@@ -128,7 +137,10 @@ function PlainGrid() {
 }
 
 export function Hobbies() {
+  const { hobbies } = useContent()
   const reduce = useReducedMotion()
   const wide = useMediaQuery('(min-width: 1024px) and (min-height: 640px)')
-  return wide && !reduce ? <PinnedStage /> : <PlainGrid />
+  if (hobbies.length === 0) return null
+  // The pinned stage is laid out for exactly one screen of up to six cards; use a normal grid beyond that.
+  return wide && !reduce && hobbies.length <= 6 ? <PinnedStage hobbies={hobbies} /> : <PlainGrid hobbies={hobbies} />
 }

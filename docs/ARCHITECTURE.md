@@ -28,13 +28,27 @@ src/
 ├── animations/                scroll-linked Reveal
 ├── hooks/                     reusable hooks
 ├── lib/                       Supabase client, API calls, validation, small utilities
-├── data/                      editable content (experience, skills, projects, hobbies, certificates)
-├── config/site.ts             name, nav, contact channels
+├── content/                   ContentProvider: loads the editable content and supplies it to the sections
+├── data/                      starter content (shown until the database has content)
+├── config/site.ts             name, nav, default contact links and link sanitisers
 ├── types/                     shared TypeScript types
 └── index.css                  Tailwind v4 design tokens (`@theme`) and base/component styles
 ```
 
-Content lives in `src/data/` and `src/config/`, so text and links change without touching components.
+### Editable content
+
+Work experience, projects, skills, hobbies, certificates and contact links are edited in the admin panel
+(`/admin/content`) and stored in one table, `site_content` (`kind` + JSON `data` + `position` + `published`).
+
+* `lib/content.ts` defines the admin form fields per kind, **validates** them (required fields, https-only links,
+  month order) and **parses rows defensively** for display (unsafe links are dropped, text is truncated, unknown
+  values fall back), so a bad row can never break or inject into the page.
+* `content/ContentProvider.tsx` renders the last copy this browser saw (or the starter data) on first paint,
+  then fetches the latest published rows through `get_site_content()` and swaps them in. The Supabase client is
+  imported lazily, so the first page load does not pay for it. If the database has any rows it is authoritative;
+  with none (or if it is unreachable) the starter data in `src/data/` is used.
+* `components/admin/ContentForm.tsx` renders any kind's form from its field definitions, so adding a field is a
+  one-line change in `lib/content.ts`.
 
 ### 3D (`src/3d/`)
 
@@ -88,10 +102,11 @@ three deliberate places that must stay in step: `src/lib/validation.ts` (UX), th
 
 ## Database (`supabase/migrations/`)
 
-One forward migration, `20261020000000_review_system.sql`, creates `admin_users`, `review_invitations`,
+Two forward migrations. `20261020000000_review_system.sql` creates `admin_users`, `review_invitations`,
 `testimonials`, `rate_limits`, all RLS policies, privileges, and the SQL functions
 (`is_admin`, `get_public_testimonials`, `get_invitation_status`, `submit_review`, `moderate_review`,
-`check_rate_limit`). Schema changes after this must be **new migration files**, never edits to this one.
+`check_rate_limit`). `20261021000000_site_content.sql` adds the editable-content table, its admin-only RLS policies and the
+public `get_site_content()` function. Schema changes after these must be **new migration files**, never edits.
 
 ## Data flow: a client review
 

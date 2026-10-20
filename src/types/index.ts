@@ -23,7 +23,7 @@ export type SkillCategory = {
   skills: { name: string; note?: string }[]
 }
 
-type ProjectCategory =
+export type ProjectCategory =
   | 'Web Development'
   | 'eCommerce'
   | 'Security & Technical Experiments'
@@ -44,13 +44,16 @@ export type Project = {
   placeholder?: boolean
 }
 
+export const HOBBY_ICONS = ['cooking', 'chess', 'garba', 'gaming', 'badminton', 'martial', 'fitness', 'reading', 'photography', 'travel', 'cycling', 'music', 'art', 'hiking', 'trophy'] as const
+export type HobbyIcon = (typeof HOBBY_ICONS)[number]
+
 export type Hobby = {
   id: string
   title: string
   line: string
   /** Short terminal-style aside shown under the line. */
   tag: string
-  icon: 'cooking' | 'chess' | 'garba' | 'gaming' | 'badminton' | 'martial'
+  icon: HobbyIcon
 }
 
 export type Certificate = {

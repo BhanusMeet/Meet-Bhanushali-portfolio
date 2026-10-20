@@ -5,28 +5,17 @@
  * roles and `auth` schema. This verifies SQL logic, constraints, privileges and RLS.
  * It does NOT exercise Supabase Auth, PostgREST, or Edge Functions (see README "Verification").
  */
-import { readFileSync } from 'node:fs'
 import { createHash, randomBytes } from 'node:crypto'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { PGlite } from '@electric-sql/pglite'
+import type { PGlite } from '@electric-sql/pglite'
+import { ADMIN, STRANGER, createTestDb, runAs } from './helpers/db'
 
 const sha256 = (s: string) => createHash('sha256').update(s).digest('hex')
 const newToken = () => randomBytes(32).toString('base64url')
 
-const ADMIN = '00000000-0000-0000-0000-0000000000a1'
-const STRANGER = '00000000-0000-0000-0000-0000000000b2'
-
 let db: PGlite
 
-/** Run `fn` as a Supabase-style role (and optional JWT subject), always resetting afterwards. */
-async function as<T>(role: 'anon' | 'authenticated' | 'service_role', sub: string | null, fn: () => Promise<T>): Promise<T> {
-  await db.exec(`select set_config('request.jwt.claim.sub', '${sub ?? ''}', false); set role ${role};`)
-  try {
-    return await fn()
-  } finally {
-    await db.exec('reset role;')
-  }
-}
+const as = <T>(role: 'anon' | 'authenticated' | 'service_role', sub: string | null, fn: () => Promise<T>) => runAs(db, role, sub, fn)
 
 const denied = async (p: Promise<unknown>) => {
   await expect(p).rejects.toThrow(/permission denied|row-level security|forbidden/i)
@@ -53,21 +42,7 @@ const submit = (token: string, over: Partial<{ name: string; text: string; ratin
   })
 
 beforeAll(async () => {
-  db = new PGlite()
-  // Minimal stand-ins for the Supabase platform.
-  await db.exec(`
-    create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;
-    create schema auth;
-    create table auth.users (id uuid primary key, email text);
-    create function auth.uid() returns uuid language sql stable
-      as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
-    grant usage on schema auth to anon, authenticated, service_role;
-    grant execute on function auth.uid() to anon, authenticated, service_role;
-    grant usage on schema public to anon, authenticated, service_role;
-    insert into auth.users values ('${ADMIN}', 'admin@example.test'), ('${STRANGER}', 'stranger@example.test');
-  `)
-  await db.exec(readFileSync(new URL('../supabase/migrations/20261020000000_review_system.sql', import.meta.url), 'utf8'))
-  await db.exec(`insert into public.admin_users (user_id) values ('${ADMIN}')`)
+  db = await createTestDb()
 })
 
 describe('anonymous access is denied', () => {

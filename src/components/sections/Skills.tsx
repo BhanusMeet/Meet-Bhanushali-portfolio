@@ -1,9 +1,9 @@
-import { skillCategories } from '@/data/skills'
-import { certificates } from '@/data/certificates'
+import { useContent } from '@/content/ContentProvider'
 import { Reveal } from '@/animations/Reveal'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 
 export function Skills() {
+  const { skills: skillCategories, certificates } = useContent()
   return (
     <section id="skills" aria-labelledby="skills-title" className="relative py-24 md:py-36">
       <div className="container-x">
@@ -31,6 +31,7 @@ export function Skills() {
           ))}
         </ul>
 
+        {certificates.length > 0 && (
         <Reveal className="mt-20" from="up">
           <h3 className="font-display text-2xl font-semibold tracking-tight">Training and certificates of completion</h3>
           <ul className="mt-6 divide-y divide-ink-600 border-y border-ink-600">
@@ -45,6 +46,7 @@ export function Skills() {
             ))}
           </ul>
         </Reveal>
+        )}
       </div>
     </section>
   )
