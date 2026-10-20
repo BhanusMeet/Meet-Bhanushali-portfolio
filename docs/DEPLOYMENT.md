@@ -1,5 +1,23 @@
 # Deployment
 
+## 0. Current deployment
+
+A Supabase project already exists for this site: **`meet-bhanushali-portfolio`** (ref `kmseyenfqovlicvhvahx`,
+region `ap-south-1`). The schema was applied through the Supabase dashboard API as migration `review_system`
+(so the remote history shows its own timestamp, not the `20261020000000` file name; the SQL is identical) and
+the three Edge Functions are deployed. If you later use the CLI against this project, run
+`npx supabase migration repair --status applied 20261020000000` once before `db push`.
+
+Public values for Vercel (safe to expose, protected by RLS):
+
+```
+VITE_SUPABASE_URL=https://kmseyenfqovlicvhvahx.supabase.co
+VITE_SUPABASE_ANON_KEY=<the sb_publishable_... key from Project Settings -> API Keys>
+```
+
+Edge Function CORS accepts `localhost:5173` and `https://meet-bhanushali-portfolio*.vercel.app` by default; add a
+custom domain with the `ALLOWED_ORIGINS` secret.
+
 ## 1. Supabase
 
 You need a Supabase project and the [Supabase CLI](https://supabase.com/docs/guides/local-development) (`npx supabase ...` works).

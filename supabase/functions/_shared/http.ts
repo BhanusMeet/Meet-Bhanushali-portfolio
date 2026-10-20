@@ -7,12 +7,19 @@ import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
 
 const csv = (v: string | undefined) => (v ?? '').split(',').map((s) => s.trim()).filter(Boolean)
 
-/** Origins allowed to call these functions from a browser. */
-function allowedOrigins(): string[] {
-  const list = csv(Deno.env.get('ALLOWED_ORIGINS'))
-  if (list.length) return list
-  const site = Deno.env.get('PUBLIC_SITE_URL')
-  return site ? [site.replace(/\/$/, '')] : []
+/**
+ * Origins allowed to call these functions from a browser.
+ * Set ALLOWED_ORIGINS (comma-separated) or PUBLIC_SITE_URL as Edge Function secrets to add your
+ * production domain. Without them, only local development and this project's own Vercel URLs
+ * (production and previews) are allowed. CORS is a browser-side convenience, not the security
+ * boundary: every endpoint is still protected by its token / JWT and rate limits.
+ */
+const DEV_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173']
+const VERCEL_ORIGIN = /^https:\/\/meet-bhanushali-portfolio(-[a-z0-9-]+)?\.vercel\.app$/
+
+function originAllowed(origin: string): boolean {
+  const configured = [...csv(Deno.env.get('ALLOWED_ORIGINS')), ...csv(Deno.env.get('PUBLIC_SITE_URL'))].map((o) => o.replace(/\/$/, ''))
+  return configured.includes(origin) || DEV_ORIGINS.includes(origin) || VERCEL_ORIGIN.test(origin)
 }
 
 export function corsHeaders(req: Request): Record<string, string> {
@@ -24,7 +31,7 @@ export function corsHeaders(req: Request): Record<string, string> {
     Vary: 'Origin',
   }
   // Reflect only explicitly allowed origins. Anything else gets no CORS headers (browser blocks it).
-  if (origin && allowedOrigins().includes(origin)) h['Access-Control-Allow-Origin'] = origin
+  if (origin && originAllowed(origin)) h['Access-Control-Allow-Origin'] = origin
   return h
 }
 
@@ -89,7 +96,8 @@ export async function rateLimit(
   limit: number,
   windowSeconds: number,
 ): Promise<'ok' | 'limited' | 'unavailable'> {
-  const salt = Deno.env.get('RATE_LIMIT_SALT') ?? ''
+  // Prefer an explicit RATE_LIMIT_SALT secret; otherwise derive from the (secret) service key.
+  const salt = Deno.env.get('RATE_LIMIT_SALT') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   const bucket = `${action}:${await sha256Hex(`${salt}:${identity}`)}`
   const { data, error } = await db.rpc('check_rate_limit', { p_bucket: bucket, p_limit: limit, p_window_seconds: windowSeconds })
   if (error) {
