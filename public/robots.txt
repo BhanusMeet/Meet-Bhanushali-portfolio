@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin
 Disallow: /review/
 
-Sitemap: https://example.com/sitemap.xml
+Sitemap: https://meet-bhanushali-portfolio.vercel.app/sitemap.xml
