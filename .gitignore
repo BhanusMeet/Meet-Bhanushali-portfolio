@@ -1,0 +1,21 @@
+node_modules
+dist
+.env
+.env.*
+!.env.example
+supabase/.temp
+supabase/.branches
+*.local
+.vercel
+*.tsbuildinfo
+
+# Personal certificate scans (contain certificate IDs) — keep out of the public repo
+/*.jpg
+
+# Editor / tool state
+.claude/
+.vscode/
+.idea/
+.DS_Store
+*.log
+coverage/

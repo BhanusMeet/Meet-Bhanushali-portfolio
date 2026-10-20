@@ -1,0 +1,20 @@
+# Supabase CLI configuration (local development + `supabase db push` / `functions deploy`).
+# Replace project_id with your own when linking (see README).
+project_id = "meet-bhanushali-portfolio"
+
+[auth]
+# Admin accounts are created manually in the dashboard. Public sign-up must stay OFF.
+enable_signup = false
+enable_anonymous_sign_ins = false
+minimum_password_length = 12
+
+# Public endpoints: authorisation is the invitation token (verified in SQL) + rate limiting.
+[functions.invitation-status]
+verify_jwt = false
+
+[functions.submit-review]
+verify_jwt = false
+
+# Admin endpoint: JWT required by the platform AND re-verified against admin_users in code.
+[functions.admin-invitations]
+verify_jwt = true
